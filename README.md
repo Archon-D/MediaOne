@@ -25,8 +25,8 @@ npm run tauri dev
 ```sh
 npm test
 npm run build
-cargo test --manifest-path src-tauri/Cargo.toml
-cargo check --manifest-path src-tauri/Cargo.toml
+cargo test --locked --manifest-path src-tauri/Cargo.toml
+cargo check --locked --manifest-path src-tauri/Cargo.toml
 ```
 
 For mobile, first install the respective platform SDKs and Rust targets, then generate the native project:

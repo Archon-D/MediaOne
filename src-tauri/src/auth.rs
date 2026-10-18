@@ -20,7 +20,9 @@ pub trait CredentialVault: Send + Sync {
     async fn delete(&self, reference: &str) -> Result<(), String>;
 }
 
-pub struct SessionManager<V: CredentialVault> { pub vault: V }
+pub struct SessionManager<V: CredentialVault> {
+    pub vault: V,
+}
 impl<V: CredentialVault> SessionManager<V> {
     pub async fn disconnect(&self, credential_ref: &str) -> Result<(), String> {
         self.vault.delete(credential_ref).await

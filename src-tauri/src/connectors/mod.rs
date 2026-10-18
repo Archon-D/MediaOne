@@ -1,7 +1,10 @@
 pub mod rss;
+use crate::{
+    error::Result,
+    models::{MediaItem, Subscription},
+};
 use async_trait::async_trait;
 use serde::Serialize;
-use crate::{error::Result, models::{MediaItem, Subscription}};
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -14,10 +17,16 @@ pub struct ConnectorInfo {
 }
 
 pub fn catalog() -> Vec<ConnectorInfo> {
-    ["rss", "youtube", "bluesky", "x", "rednote"].into_iter().map(|platform| ConnectorInfo {
-        platform, implemented: platform == "rss", manual_source: platform == "rss",
-        subscription_import: false, authenticated_access: false,
-    }).collect()
+    ["rss", "youtube", "bluesky", "x", "rednote"]
+        .into_iter()
+        .map(|platform| ConnectorInfo {
+            platform,
+            implemented: platform == "rss",
+            manual_source: platform == "rss",
+            subscription_import: false,
+            authenticated_access: false,
+        })
+        .collect()
 }
 
 pub struct FetchResult {
