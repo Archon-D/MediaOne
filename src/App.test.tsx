@@ -3,13 +3,13 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { api } from './api';
-vi.mock('./api', () => ({ api: { feed: vi.fn(), subscriptions: vi.fn(), connectors: vi.fn(), accounts: vi.fn(), add: vi.fn(), remove: vi.fn(), read: vi.fn(), refresh: vi.fn() } }));
+vi.mock('./api', () => ({ api: { feed: vi.fn(), subscriptions: vi.fn(), connectors: vi.fn(), accounts: vi.fn(), add: vi.fn(), remove: vi.fn(), read: vi.fn(), refresh: vi.fn(), open: vi.fn() } }));
 const source = { id: 's', platform: 'rss', url: 'https://example.com/feed', title: 'Example', lastSyncedAt: null, lastError: null };
 beforeEach(() => {
   vi.mocked(api.subscriptions).mockResolvedValue([]); vi.mocked(api.feed).mockResolvedValue([]);
   vi.mocked(api.connectors).mockResolvedValue([]); vi.mocked(api.accounts).mockResolvedValue([]);
   vi.mocked(api.add).mockResolvedValue(source); vi.mocked(api.read).mockResolvedValue();
-  vi.mocked(api.refresh).mockResolvedValue([]);
+  vi.mocked(api.refresh).mockResolvedValue([]); vi.mocked(api.open).mockResolvedValue();
 });
 afterEach(() => { cleanup(); vi.resetAllMocks(); });
 describe('local reading workflow', () => {
@@ -25,7 +25,10 @@ describe('local reading workflow', () => {
     vi.mocked(api.subscriptions).mockResolvedValue([source]);
     vi.mocked(api.feed).mockResolvedValue([{ id: 'i', sourceId: 's', externalId: 'e', title: '<script>plain title</script>', url: 'https://example.com/article', publishedAt: null, fetchedAt: '2026-10-18T00:00:00Z', isRead: false }]);
     const user = userEvent.setup(); render(<App />);
-    await user.click(await screen.findByRole('button', { name: 'Mark read' }));
+    await user.click(await screen.findByRole('button', { name: 'Open original ↗' }));
+    await waitFor(() => expect(api.open).toHaveBeenCalledWith('i'));
+    await waitFor(() => expect((screen.getByRole('button', { name: 'Mark read' }) as HTMLButtonElement).disabled).toBe(false));
+    await user.click(screen.getByRole('button', { name: 'Mark read' }));
     await waitFor(() => expect(api.read).toHaveBeenCalledWith('i', true));
     await waitFor(() => expect((screen.getByRole('button', { name: 'Mark read' }) as HTMLButtonElement).disabled).toBe(false));
     await user.click(screen.getByRole('checkbox', { name: 'Unread only' }));

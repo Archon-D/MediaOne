@@ -6,6 +6,7 @@ pub mod ingestion;
 pub mod models;
 
 use tauri::{Manager, State};
+use tauri_plugin_opener::OpenerExt;
 use models::{FeedFilter, MediaItem, Subscription, SyncReport};
 struct AppState { pool: sqlx::SqlitePool, ingestion: ingestion::Ingestion }
 
@@ -42,9 +43,19 @@ async fn list_accounts(state: State<'_, AppState>) -> Result<Vec<auth::Account>,
     sqlx::query_as("SELECT id, platform, display_name, status FROM connected_accounts").fetch_all(&state.pool).await.map_err(|e| e.to_string())
 }
 
+#[tauri::command]
+async fn open_original(app: tauri::AppHandle, state: State<'_, AppState>, id: String) -> Result<(), String> {
+    let url: Option<String> = sqlx::query_scalar("SELECT url FROM items WHERE id = ?")
+        .bind(id).fetch_optional(&state.pool).await.map_err(|e| e.to_string())?.flatten();
+    let url = url.ok_or("Article has no original URL")?;
+    let validated = connectors::rss::validate_url(&url).map_err(|e| e.to_string())?;
+    app.opener().open_url(validated, None::<&str>).map_err(|e| e.to_string())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_opener::init())
         .setup(|app| {
             let dir = app.path().app_data_dir()?;
             std::fs::create_dir_all(&dir)?;
@@ -52,7 +63,7 @@ pub fn run() {
             app.manage(AppState { pool, ingestion: ingestion::Ingestion { lock: tokio::sync::Mutex::new(()), rss: connectors::rss::RssConnector::new()? } });
             Ok(())
         })
-        .invoke_handler(tauri::generate_handler![get_feed, list_subscriptions, add_subscription, remove_subscription, set_read_state, refresh_feeds, list_connectors, list_accounts])
+        .invoke_handler(tauri::generate_handler![get_feed, list_subscriptions, add_subscription, remove_subscription, set_read_state, refresh_feeds, list_connectors, list_accounts, open_original])
         .run(tauri::generate_context!())
         .expect("Unable to start MediaOne");
 }

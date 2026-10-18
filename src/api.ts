@@ -10,6 +10,7 @@ export const api = {
   add: (url: string) => local<Subscription>('add_subscription', { url }),
   remove: (id: string) => local<void>('remove_subscription', { id }),
   read: (id: string, isRead: boolean) => local<void>('set_read_state', { id, isRead }),
+  open: (id: string) => local<void>('open_original', { id }),
   refresh: () => local<SyncReport[]>('refresh_feeds'),
   connectors: () => local<ConnectorInfo[]>('list_connectors'),
   accounts: () => local<Account[]>('list_accounts'),

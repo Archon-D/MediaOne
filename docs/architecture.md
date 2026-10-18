@@ -37,7 +37,7 @@ Foreground manual refresh plus a five-minute interval when the page is visible. 
 
 ## Security boundary
 
-Remote documents are data, never UI code. Titles render as escaped React text, and item links are restricted to HTTP(S). CSP disallows remote scripts, images and connections from the UI. Database and networking are exposed only through narrow application commands. Feed URLs cannot embed credentials; do not use secret-bearing feed URLs because URLs are stored locally in plaintext. Local/private-network HTTP feeds are intentionally allowed for a personal local client; there is no server-side proxy.
+Remote documents are data, never UI code. Titles render as escaped React text, and item links are restricted to HTTP(S). A narrow `open_original(id)` command loads the stored URL, validates it again and opens the system browser through the Tauri opener plugin. No arbitrary path-opening capability is exposed. CSP disallows remote scripts, images and connections from the UI. Database and networking are exposed only through narrow application commands. Feed URLs cannot embed credentials; do not use secret-bearing feed URLs because URLs are stored locally in plaintext. Local/private-network HTTP feeds are intentionally allowed for a personal local client; there is no server-side proxy.
 
 The database contains account metadata only. The credential-vault trait has no plaintext fallback or production implementation. OAuth PKCE, Keychain/Keystore, cookie lifetimes, scope handling and revocation must be implemented before authenticated connectors are enabled. System browser, WebView and Rust HTTP cookies are separate stores; no session sharing is assumed.
 
